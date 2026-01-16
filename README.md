@@ -5,6 +5,17 @@ cd vaultkey
 npm start
 npm install crypto-js
 import { useState } from "react";
+git clone https://github.com/yourusername/vaultkey.git
+cd vaultkey
+npm start
+npm install
+const firebaseConfig = {
+  apiKey: "...",
+  authDomain: "...",
+  projectId: "...",
+};
+npx create-expo-app vaultkey-mobile
+expo install expo-local-authentication
 
 function App() {
   const [locked, setLocked] = useState(true);
