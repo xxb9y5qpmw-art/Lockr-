@@ -545,3 +545,186 @@ const success = await authenticateBiometric();
 if (success) {
   unlockVault();
 }
+{
+  "vault": "...encrypted...",
+  "version": 5,
+  "updatedAt": 1710000000000
+}import { doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
+
+export async function uploadVault(userId, encryptedVault, version) {
+  await setDoc(doc(db, "vaults", userId), {
+    vault: encryptedVault,
+    version,
+    updatedAt: Date.now(),
+  });
+}export async function downloadVaultWithMeta(userId) {
+  const snap = await getDoc(doc(db, "vaults", userId));
+
+  if (!snap.exists()) return null;
+
+  return snap.data(); // { vault, version, updatedAt }
+}const syncVault = async () => {
+  const cloudData = await downloadVaultWithMeta(uid);
+
+  if (!cloudData) return;
+
+  if (cloudData.version > localVersion) {
+    // Cloud is newer → overwrite local
+    const decrypted = decryptVault(cloudData.vault, key);
+    setVault(decrypted);
+    setLocalVersion(cloudData.version);
+  } else if (cloudData.version < localVersion) {
+    // Local is newer → upload
+    await uploadVault(uid, encryptVault(vault, key), localVersion);
+  } else {
+    // Same version → do nothing
+  }
+};export async function downloadVaultWithMeta(userId) {
+  const snap = await getDoc(doc(db, "vaults", userId));
+
+  if (!snap.exists()) return null;
+
+  return snap.data(); // { vault, version, updatedAt }
+}const syncVault = async () => {
+  const cloudData = await downloadVaultWithMeta(uid);
+
+  if (!cloudData) return;
+
+  if (cloudData.version > localVersion) {
+    // Cloud is newer → overwrite local
+    const decrypted = decryptVault(cloudData.vault, key);
+    setVault(decrypted);
+    setLocalVersion(cloudData.version);
+  } else if (cloudData.version < localVersion) {
+    // Local is newer → upload
+    await uploadVault(uid, encryptVault(vault, key), localVersion);
+  } else {
+    // Same version → do nothing
+  }
+};const newVersion = localVersion + 1;
+setLocalVersion(newVersion);
+
+saveVault(updated, key);
+uploadVault(uid, encryptVault(updated, key), newVersion);const syncVault = async () => {
+  const cloudData = await downloadVaultWithMeta(uid);
+
+  if (!cloudData) return;
+
+  if (cloudData.version > localVersion) {
+    // Cloud is newer → overwrite local
+    const decrypted = decryptVault(cloudData.vault, key);
+    setVault(decrypted);
+    setLocalVersion(cloudData.version);
+  } else if (cloudData.version < localVersion) {
+    // Local is newer → upload
+    await uploadVault(uid, encryptVault(vault, key), localVersion);
+  } else {
+    // Same version → do nothing
+  }
+};const newVersion = localVersion + 1;
+setLocalVersion(newVersion);
+
+saveVault(updated, key);
+uploadVault(uid, encryptVault(updated, key), newVersion);const mergeVaults = (local, cloud) => {
+  const map = new Map();
+
+  [...local, ...cloud].forEach((item) => {
+    map.set(item.id, item); // last write wins
+  });
+
+  return Array.from(map.values());
+};const merged = mergeVaults(localVault, cloudVault);await setDoc(doc(db, "vault_history", `${userId}_${Date.now()}`), {
+  vault: encryptedVault,
+  timestamp: Date.now(),
+});npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -pexport default {
+  content: ["./src/**/*.{js,jsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};@tailwind base;
+@tailwind components;
+@tailwind utilities;<div className="min-h-screen bg-gray-900 text-white p-6">
+  <div className="max-w-xl mx-auto">
+
+    <h1 className="text-3xl font-bold mb-6">🔐 VaultKey</h1>
+
+    <input
+      className="w-full p-2 mb-3 rounded bg-gray-800"
+      placeholder="Search..."
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+    />
+
+    <div className="bg-gray-800 p-4 rounded mb-4 space-y-2">
+      <input
+        className="w-full p-2 rounded bg-gray-700"
+        placeholder="Website"
+        value={site}
+        onChange={(e) => setSite(e.target.value)}
+      />
+      <input
+        className="w-full p-2 rounded bg-gray-700"
+        placeholder="Username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        className="w-full p-2 rounded bg-gray-700"
+        type="password"
+        placeholder="Password"
+        value={sitePassword}
+        onChange={(e) => setSitePassword(e.target.value)}
+      />
+
+      <div className="flex gap-2">
+        <button
+          className="bg-blue-600 px-4 py-2 rounded"
+          onClick={editingId ? saveEdit : addEntry}
+        >
+          {editingId ? "Save" : "Add"}
+        </button>
+
+        <button
+          className="bg-purple-600 px-4 py-2 rounded"
+          onClick={() => setSitePassword(generatePassword())}
+        >
+          Generate
+        </button>
+      </div>
+    </div><div className="space-y-3">
+  {filteredVault.map((item) => (
+    <div
+      key={item.id}
+      className="bg-gray-800 p-3 rounded shadow"
+    >
+      <div className="font-bold">{item.site}</div>
+      <div className="text-sm text-gray-400">
+        {item.username}
+      </div>
+
+      <div className="flex justify-between items-center mt-2">
+        <span>
+          {visibleId === item.id
+            ? item.password
+            : "••••••••"}
+        </span>
+
+        <div className="flex gap-2">
+          <button onClick={() =>
+            setVisibleId(
+              visibleId === item.id ? null : item.id
+            )
+          }>
+            👁
+          </button>
+
+          <button onClick={() => startEdit(item)}>✏️</button>
+          <button onClick={() => deleteEntry(item.id)}>🗑</button>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
