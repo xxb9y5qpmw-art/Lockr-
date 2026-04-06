@@ -728,3 +728,646 @@ npx tailwindcss init -pexport default {
     </div>
   ))}
 </div>
+const copyToClipboard = (text) => {
+  navigator.clipboard.writeText(text);
+
+  setTimeout(() => {
+    navigator.clipboard.writeText("");
+  }, 30000);
+};<button onClick={lockApp}>
+  🔒 Lock
+</button>const reused = vault.filter(
+  (item) => item.password === sitePassword
+);
+
+if (reused.length > 0) {
+  alert("⚠️ This password is already used!");
+}useEffect(() => {
+  const handleVisibility = () => {
+    if (document.hidden) lockApp();
+  };
+
+  document.addEventListener("visibilitychange", handleVisibility);
+  return () =>
+    document.removeEventListener("visibilitychange", handleVisibility);
+}, []);new URL("https://google.com").hostnameconst exportVault = () => {
+  const blob = new Blob([JSON.stringify(vault)], {
+    type: "application/json",
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "vault.json";
+  link.click();
+};{
+  action: "DELETE",
+  site: "gmail.com",
+  time: Date.now()
+}"short_name": "VaultKey",
+"display": "standalone"const [showWarning, setShowWarning] = useState(false);
+
+useEffect(() => {
+  if (locked) return;
+
+  const warningTimer = setTimeout(() => {
+    setShowWarning(true);
+  }, AUTO_LOCK_TIME - 15000); // 15 sec before lock
+
+  const lockTimer = setTimeout(() => {
+    lockApp();
+  }, AUTO_LOCK_TIME);
+
+  return () => {
+    clearTimeout(warningTimer);
+    clearTimeout(lockTimer);
+  };
+}, [locked]);{showWarning && (
+  <div className="bg-yellow-600 p-2 rounded mb-2">
+    ⚠️ Session expiring soon...
+    <button onClick={() => setShowWarning(false)}>
+      Stay Logged In
+    </button>
+  </div>
+)}let secureVault = null;
+
+export function setSecureVault(data) {
+  secureVault = data;
+}
+
+export function getSecureVault() {
+  return secureVault;
+}
+
+export function clearSecureVault() {
+  secureVault = null;
+}let attempts = 0;
+
+const handleUnlock = () => {
+  if (attempts >= 5) {
+    alert("Too many attempts. Try again later.");
+    return;
+  }
+
+  const valid = verifyMasterPassword(password);
+
+  if (!valid) {
+    attempts++;
+    return;
+  }
+
+  attempts = 0;
+};let idleTimer;
+
+const resetIdle = () => {
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(lockApp, AUTO_LOCK_TIME);
+};
+
+["click", "scroll", "keypress"].forEach((event) =>
+  window.addEventListener(event, resetIdle)
+);const [copiedId, setCopiedId] = useState(null);
+
+const handleCopy = (id, text) => {
+  navigator.clipboard.writeText(text);
+  setCopiedId(id);
+
+  setTimeout(() => setCopiedId(null), 2000);
+};<button onClick={() => handleCopy(item.id, item.password)}>
+  {copiedId === item.id ? "✅ Copied" : "Copy"}
+</button>import { useEffect, useState } from "react";
+
+const [debouncedSearch, setDebouncedSearch] = useState("");
+
+useEffect(() => {
+  const handler = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 300);
+
+  return () => clearTimeout(handler);
+}, [search]);const getSecurityScore = (vault) => {
+  let score = 100;
+
+  const weak = vault.filter(
+    (v) => getStrength(v.password) === "Weak"
+  ).length;
+
+  const reused = new Set(
+    vault.map((v) => v.password)
+  ).size !== vault.length;
+
+  score -= weak * 10;
+  if (reused) score -= 20;
+
+  return Math.max(score, 0);
+};const backupVault = () => {
+  const encrypted = encryptVault(vault, key);
+
+  const blob = new Blob([encrypted], {
+    type: "text/plain",
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "vault.backup";
+  link.click();
+};const [online, setOnline] = useState(navigator.onLine);
+
+useEffect(() => {
+  const update = () => setOnline(navigator.onLine);
+
+  window.addEventListener("online", update);
+  window.addEventListener("offline", update);
+
+  return () => {
+    window.removeEventListener("online", update);
+    window.removeEventListener("offline", update);
+  };
+}, []);<p>{online ? "🟢 Online" : "🔴 Offline"}</p>const [blur, setBlur] = useState(false);
+
+useEffect(() => {
+  const handle = () => setBlur(document.hidden);
+  document.addEventListener("visibilitychange", handle);
+  return () =>
+    document.removeEventListener("visibilitychange", handle);
+}, []);<div className={blur ? "blur-md" : ""}>User visits website
+      ↓
+Extension detects domain
+      ↓
+Fetch encrypted vault (from your app / local)
+      ↓
+Decrypt (locally)
+      ↓
+Find matching credentials
+      ↓
+Autofill login formvaultkey-extension/
+├── manifest.json
+├── content.js
+├── background.js
+├── popup.html
+├── popup.js
+├── styles.css{
+  "manifest_version": 3,
+  "name": "VaultKey Autofill",
+  "version": "1.0",
+  "description": "Autofill passwords securely",
+  "permissions": ["storage", "activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}function findLoginFields() {
+  const inputs = document.querySelectorAll("input");
+
+  let username = null;
+  let password = null;
+
+  inputs.forEach((input) => {
+    if (
+      input.type === "email" ||
+      input.name.toLowerCase().includes("user")
+    ) {
+      username = input;
+    }
+
+    if (input.type === "password") {
+      password = input;
+    }
+  });
+
+  return { username, password };
+}function autofill(credentials) {
+  const { username, password } = findLoginFields();
+
+  if (username) username.value = credentials.username;
+  if (password) password.value = credentials.password;
+}chrome.storage.local.get(["vault"], (result) => {
+  const vault = result.vault || [];
+
+  const domain = window.location.hostname;
+
+  const match = vault.find((item) =>
+    domain.includes(item.site)
+  );
+
+  if (match) {
+    autofill(match);
+  }
+});chrome.runtime.sendMessage(
+  { type: "GET_VAULT" },
+  (response) => {
+    const vault = response.vault;
+  }
+);chrome.runtime.onMessage.addListener(
+  (request, sender, sendResponse) => {
+    if (request.type === "GET_VAULT") {
+      chrome.storage.local.get(["vault"], (data) => {
+        sendResponse({ vault: data.vault || [] });
+      });
+      return true;
+    }
+  }
+);<!DOCTYPE html>
+<html>
+  <body>
+    <h3>VaultKey</h3>
+    <button id="fill">Autofill</button>
+    <script src="popup.js"></script>
+  </body>
+</html>document.getElementById("fill").addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      func: () => {
+        console.log("Trigger autofill");
+      },
+    });
+  });
+});const decrypted = decryptVault(encryptedVault, derivedKey);const normalize = (url) =>
+  url.replace("www.", "").toLowerCase();
+
+const match = vault.find((item) =>
+  normalize(domain).includes(normalize(item.site))
+);vaultkey-extension/import CryptoJS from "crypto-js";
+
+export function encryptVault(data, key) {
+  return CryptoJS.AES.encrypt(
+    JSON.stringify(data),
+    key
+  ).toString();
+}
+
+export function decryptVault(cipher, key) {
+  const bytes = CryptoJS.AES.decrypt(cipher, key);
+  return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+}import { encryptVault } from "../shared/crypto";
+
+const encrypted = encryptVault(vault, key);
+
+await uploadVault(uid, encrypted, version);import { getDoc, doc } from "firebase/firestore";
+
+async function fetchVault(userId) {
+  const snap = await getDoc(doc(db, "vaults", userId));
+  return snap.data().vault; // still encrypted
+}import { decryptVault } from "./crypto";
+
+const decryptedVault = decryptVault(encryptedVault, derivedKey);import CryptoJS from "crypto-js";
+
+function deriveKey(password, salt) {
+  return CryptoJS.PBKDF2(password, salt, {
+    keySize: 256 / 32,
+    iterations: 100000,
+  }).toString();
+}sendMessage({ vault: encryptedVault })setTimeout(() => {
+  decryptedVault = null;
+}, 10000);import CryptoJS from "crypto-js";
+
+function signVault(data, key) {
+  return CryptoJS.HmacSHA256(data, key).toString();
+}{
+  "vault": "...",
+  "signature": "abc123"
+}if (signVault(encryptedVault, key) !== signature) {
+  throw new Error("Vault tampered!");
+}{
+  "vault": "...",
+  "version": 5,
+  "updatedAt": 1710000000000
+}if (cloud.updatedAt < local.updatedAt) {
+  ignore();
+}src/utils/webcrypto.jsexport async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+
+  const baseKey = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: enc.encode(salt),
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    baseKey,
+    {
+      name: "AES-GCM",
+      length: 256,
+    },
+    false, // 🔥 non-extractable key
+    ["encrypt", "decrypt"]
+  );
+}export async function encryptVault(data, key) {
+  const enc = new TextEncoder();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  const encrypted = await crypto.subtle.encrypt(
+    {
+      name: "AES-GCM",
+      iv,
+    },
+    key,
+    enc.encode(JSON.stringify(data))
+  );
+
+  return {
+    cipher: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
+    iv: Array.from(iv),
+  };
+}export async function decryptVault(cipher, iv, key) {
+  const dec = new TextDecoder();
+
+  const encryptedBytes = Uint8Array.from(atob(cipher), c =>
+    c.charCodeAt(0)
+  );
+
+  const decrypted = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: new Uint8Array(iv),
+    },
+    key,
+    encryptedBytes
+  );
+
+  return JSON.parse(dec.decode(decrypted));
+}"vault": "encryptedstring"{
+  "cipher": "...",
+  "iv": [12, 34, 56, ...]
+}const encrypted = await encryptVault(vault, key);
+
+await uploadVault(uid, encrypted, version);const data = await downloadVault(uid);
+
+const decrypted = await decryptVault(
+  data.cipher,
+  data.iv,
+  key
+);
+
+setVault(decrypted);const lockApp = () => {
+  setLocked(true);
+  setKey(null); // destroys CryptoKey reference
+  setVault([]);
+};Master Password
+     ↓
+PBKDF2 → Encryption Key (WebCrypto)
+     ↓
+Vault Encryption (AES-GCM)
+
++ Hardware Key (WebAuthn)
+     ↓
+Used to unlock / verify user
+     ↓
+Protect access to encryption keyasync function registerHardwareKey() {
+  const publicKey = {
+    challenge: new Uint8Array(32),
+    rp: { name: "VaultKey" },
+    user: {
+      id: new Uint8Array(16),
+      name: "user@vaultkey",
+      displayName: "VaultKey User",
+    },
+    pubKeyCredParams: [
+      { type: "public-key", alg: -7 } // ES256
+    ],
+    authenticatorSelection: {
+      authenticatorAttachment: "platform",
+      userVerification: "required",
+    },
+    timeout: 60000,
+    attestation: "none",
+  };
+
+  const credential = await navigator.credentials.create({
+    publicKey,
+  });
+
+  return credential;
+}localStorage.setItem(
+  "hardware_public_key",
+  JSON.stringify(credential)
+);async function authenticateHardwareKey() {
+  const publicKey = {
+    challenge: new Uint8Array(32),
+    allowCredentials: [
+      {
+        id: new Uint8Array(credentialId),
+        type: "public-key",
+      },
+    ],
+    userVerification: "required",
+  };
+
+  const assertion = await navigator.credentials.get({
+    publicKey,
+  });
+
+  return assertion;
+}User opens app
+   ↓
+Hardware auth required
+   ↓
+Then allow master password entry
+   ↓
+Derive encryption keyVault Key (AES)
+   ↓
+Encrypted by KEK
+   ↓
+KEK unlocked via WebAuthnconst unlockVault = async () => {
+  const success = await authenticateHardwareKey();
+
+  if (!success) return;
+
+  // THEN allow decryption
+  const key = await deriveKey(password, salt);
+};User signs up
+   ↓
+Device creates keypair (hardware)
+   ↓
+Public key → stored in Firebase
+Private key → stays in device (never leaves)
+   ↓
+Login = biometric verificationasync function registerPasskey(email) {
+  const publicKey = {
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+
+    rp: {
+      name: "VaultKey",
+      id: window.location.hostname,
+    },
+
+    user: {
+      id: crypto.getRandomValues(new Uint8Array(16)),
+      name: email,
+      displayName: email,
+    },
+
+    pubKeyCredParams: [
+      { type: "public-key", alg: -7 } // ES256
+    ],
+
+    authenticatorSelection: {
+      authenticatorAttachment: "platform",
+      userVerification: "required",
+      residentKey: "required"
+    },
+
+    timeout: 60000,
+    attestation: "none",
+  };
+
+  const credential = await navigator.credentials.create({
+    publicKey,
+  });
+
+  return credential;
+}{
+  "credentialId": "...",
+  "publicKey": "...",
+  "email": "user@email.com"
+}async function loginWithPasskey(credentialId) {
+  const publicKey = {
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+
+    allowCredentials: [
+      {
+        id: Uint8Array.from(atob(credentialId), c => c.charCodeAt(0)),
+        type: "public-key",
+      },
+    ],
+
+    userVerification: "required",
+  };
+
+  const assertion = await navigator.credentials.get({
+    publicKey,
+  });
+
+  return assertion;
+}Passkey unlock
+   ↓
+Allow access to encryption key
+   ↓
+Decrypt vaultconst unlockWithPasskey = async () => {
+  const auth = await loginWithPasskey(credentialId);
+
+  if (!auth) return;
+
+  const key = await deriveKeyFromDevice(); // or stored method
+  const vault = await decryptVault(cipher, iv, key);
+
+  setVault(vault);
+};Passkey → unlock device-bound key → decrypt vaultnpm install firebase-admin firebase-functions @simplewebauthn/server// functions/registerStart.js
+const { generateRegistrationOptions } = require("@simplewebauthn/server");
+
+exports.registerStart = async (req, res) => {
+  const options = generateRegistrationOptions({
+    rpName: "VaultKey",
+    rpID: "yourdomain.com",
+
+    userID: req.body.userId,
+    userName: req.body.email,
+
+    authenticatorSelection: {
+      residentKey: "required",
+      userVerification: "required",
+    },
+  });
+
+  // Save challenge in DB
+  await db.collection("challenges").doc(req.body.userId).set({
+    challenge: options.challenge,
+  });
+
+  res.json(options);
+};const options = await fetch("/registerStart").then(r => r.json());
+
+const credential = await navigator.credentials.create({
+  publicKey: options,
+});// functions/registerFinish.js
+const {
+  verifyRegistrationResponse,
+} = require("@simplewebauthn/server");
+
+exports.registerFinish = async (req, res) => {
+  const expectedChallenge = await getChallenge(req.body.userId);
+
+  const verification = await verifyRegistrationResponse({
+    response: req.body,
+    expectedChallenge,
+    expectedOrigin: "http://localhost:3000",
+    expectedRPID: "yourdomain.com",
+  });
+
+  if (verification.verified) {
+    const { credentialPublicKey, credentialID } =
+      verification.registrationInfo;
+
+    await db.collection("users").doc(req.body.userId).set({
+      credentialID,
+      publicKey: credentialPublicKey,
+    });
+  }
+
+  res.json({ verified: verification.verified });
+};const { generateAuthenticationOptions } =
+  require("@simplewebauthn/server");
+
+exports.loginStart = async (req, res) => {
+  const user = await getUser(req.body.userId);
+
+  const options = generateAuthenticationOptions({
+    allowCredentials: [
+      {
+        id: user.credentialID,
+        type: "public-key",
+      },
+    ],
+    userVerification: "required",
+  });
+
+  await saveChallenge(req.body.userId, options.challenge);
+
+  res.json(options);
+};const options = await fetch("/loginStart").then(r => r.json());
+
+const assertion = await navigator.credentials.get({
+  publicKey: options,
+});const {
+  verifyAuthenticationResponse,
+} = require("@simplewebauthn/server");
+
+exports.loginFinish = async (req, res) => {
+  const user = await getUser(req.body.userId);
+  const expectedChallenge = await getChallenge(req.body.userId);
+
+  const verification = await verifyAuthenticationResponse({
+    response: req.body,
+    expectedChallenge,
+    expectedOrigin: "http://localhost:3000",
+    expectedRPID: "yourdomain.com",
+    authenticator: {
+      credentialPublicKey: user.publicKey,
+      credentialID: user.credentialID,
+      counter: 0,
+    },
+  });
+
+  res.json({ verified: verification.verified });
+};{ "verified": true }if (verified) {
+  const key = await deriveKey(...);
+  const vault = await decryptVault(cipher, iv, key);
+  setVault(vault);
+}
