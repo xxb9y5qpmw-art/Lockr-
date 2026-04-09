@@ -1371,3 +1371,421 @@ exports.loginFinish = async (req, res) => {
   const vault = await decryptVault(cipher, iv, key);
   setVault(vault);
 }
+Frontend (React)
+     ↓
+Stripe Checkout
+     ↓
+Webhook (Firebase)
+     ↓
+Firestore → user.subscription = "premium"
+     ↓
+App unlocks premium featuresprice_12345
+price_family_67890npm install stripeconst functions = require("firebase-functions");
+const Stripe = require("stripe");
+
+const stripe = new Stripe(process.env.STRIPE_SECRET);
+
+exports.createCheckout = functions.https.onRequest(async (req, res) => {
+  const { priceId, userId } = req.body;
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    mode: "subscription",
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    success_url: "http://localhost:3000/success",
+    cancel_url: "http://localhost:3000/cancel",
+    metadata: { userId },
+  });
+
+  res.json({ url: session.url });
+});const subscribe = async (priceId) => {
+  const res = await fetch("/createCheckout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      priceId,
+      userId: currentUser.uid,
+    }),
+  });
+
+  const data = await res.json();
+  window.location.href = data.url;
+};exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
+  const event = req.body;
+
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const userId = session.metadata.userId;
+
+    await db.collection("users").doc(userId).update({
+      subscription: "premium",
+    });
+  }
+
+  res.sendStatus(200);
+});const isPremium = user.subscription === "premium";if (!isPremium) {
+  alert("Upgrade to Premium 🔒");
+  return;
+}export default function Pricing() {
+  return (
+    <div className="min-h-screen bg-gray-950 text-white py-16 px-6">
+      <div className="max-w-5xl mx-auto text-center">
+
+        {/* Header */}
+        <h1 className="text-4xl font-bold mb-4">
+          Simple, Secure Pricing
+        </h1>
+        <p className="text-gray-400 mb-12">
+          Start free. Upgrade when you need more security and power.
+        </p>
+
+        {/* Plans */}
+        <div className="grid md:grid-cols-3 gap-6">
+
+          {/* FREE PLAN */}
+          <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+            <h2 className="text-xl font-semibold mb-2">Free</h2>
+            <p className="text-3xl font-bold mb-4">$0</p>
+
+            <ul className="text-gray-400 space-y-2 mb-6">
+              <li>✔ Local password storage</li>
+              <li>✔ Basic encryption</li>
+              <li>✔ Manual entry</li>
+            </ul>
+
+            <button className="w-full bg-gray-700 py-2 rounded">
+              Get Started
+            </button>
+          </div>
+
+          {/* PREMIUM PLAN (HIGHLIGHTED) */}
+          <div className="bg-gray-900 p-6 rounded-2xl border-2 border-blue-500 relative">
+
+            <span className="absolute top-3 right-3 text-xs bg-blue-500 px-2 py-1 rounded">
+              MOST POPULAR
+            </span>
+
+            <h2 className="text-xl font-semibold mb-2">Premium</h2>
+            <p className="text-3xl font-bold mb-4">$2<span className="text-sm">/mo</span></p>
+
+            <ul className="text-gray-300 space-y-2 mb-6">
+              <li>✔ Cloud sync</li>
+              <li>✔ Autofill extension</li>
+              <li>✔ Security dashboard</li>
+              <li>✔ Password generator</li>
+              <li>✔ Encrypted backups</li>
+            </ul>
+
+            <button
+              onClick={() => subscribe("price_premium")}
+              className="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-semibold"
+            >
+              Upgrade to Premium
+            </button>
+          </div>
+
+          {/* FAMILY PLAN */}
+          <div className="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+            <h2 className="text-xl font-semibold mb-2">Family</h2>
+            <p className="text-3xl font-bold mb-4">$7<span className="text-sm">/mo</span></p>
+
+            <ul className="text-gray-400 space-y-2 mb-6">
+              <li>✔ Everything in Premium</li>
+              <li>✔ Up to 5 users</li>
+              <li>✔ Shared vaults</li>
+              <li>✔ Admin controls</li>
+            </ul>
+
+            <button
+              onClick={() => subscribe("price_family")}
+              className="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded"
+            >
+              Start Family Plan
+            </button>
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <p className="text-gray-500 mt-10 text-sm">
+          Cancel anytime. Secure payments powered by Stripe.
+        </p>
+      </div>
+    </div>
+  );
+}const subscribe = async (priceId) => {
+  const res = await fetch("/createCheckout", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      priceId,
+      userId: currentUser.uid
+    }),
+  });
+
+  const data = await res.json();
+  window.location.href = data.url;
+};<button className="bg-gray-800 px-4 py-2 rounded">
+  Monthly
+</button>
+<button className="bg-gray-700 px-4 py-2 rounded">
+  Yearly (Save 20%)
+</button>className="hover:scale-105 transition-transform duration-200"className="border-2 border-blue-500 shadow-lg shadow-blue-500/20"export default function Landing() {
+  return (
+    <div className="bg-gray-950 text-white min-h-screen">
+
+      {/* NAVBAR */}
+      <nav className="flex justify-between items-center p-6 max-w-6xl mx-auto">
+        <h1 className="text-xl font-bold">🔐 Lockr</h1>
+        <div className="space-x-4">
+          <button className="text-gray-300">Login</button>
+          <button className="bg-blue-600 px-4 py-2 rounded">
+            Get Started
+          </button>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section className="text-center py-20 px-6">
+        <h1 className="text-5xl font-bold mb-6">
+          The Last Password Manager You’ll Ever Need
+        </h1>
+
+        <p className="text-gray-400 max-w-2xl mx-auto mb-8">
+          Zero-knowledge encryption. Passkey login. Autofill everywhere.
+          Your data is yours—and only yours.
+        </p>
+
+        <div className="space-x-4">
+          <button className="bg-blue-600 px-6 py-3 rounded text-lg">
+            Start Free
+          </button>
+          <button className="border border-gray-700 px-6 py-3 rounded text-lg">
+            View Pricing
+          </button>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="py-16 px-6 max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-2">🔐 Zero-Knowledge</h3>
+          <p className="text-gray-400">
+            Your vault is encrypted before it leaves your device. We can’t see your data.
+          </p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-2">⚡ Autofill Anywhere</h3>
+          <p className="text-gray-400">
+            Chrome extension fills your passwords instantly and securely.
+          </p>
+        </div>
+
+        <div className="bg-gray-900 p-6 rounded-xl">
+          <h3 className="text-xl font-semibold mb-2">🔑 Passkey Login</h3>
+          <p className="text-gray-400">
+            No passwords. Just Face ID, Touch ID, or your device.
+          </p>
+        </div>
+
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-20 text-center px-6">
+        <h2 className="text-3xl font-bold mb-10">How Lockr Works</h2>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div>
+            <h3 className="font-semibold mb-2">1. Save</h3>
+            <p className="text-gray-400">Store passwords securely in your vault</p>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">2. Encrypt</h3>
+            <p className="text-gray-400">Encrypted locally using AES-256</p>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">3. Access Anywhere</h3>
+            <p className="text-gray-400">Sync across devices securely</p>
+          </div>
+        </div>
+      </section>
+
+      {/* SOCIAL PROOF */}
+      <section className="py-16 text-center">
+        <p className="text-gray-500">
+          Built with modern security standards used by top tech companies
+        </p>
+      </section>
+
+      {/* CTA */}
+      <section className="py-20 text-center">
+        <h2 className="text-3xl font-bold mb-6">
+          Ready to Secure Your Digital Life?
+        </h2>
+
+        <button className="bg-blue-600 px-8 py-4 rounded text-lg">
+          Get Started for Free
+        </button>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="text-center text-gray-500 py-6">
+        © 2026 Lockr. Secure by design.
+      </footer>
+
+    </div>
+  );
+}<img src="/demo.png" className="rounded-xl shadow-lg mx-auto mt-10" /><img src="/demo.png" className="rounded-xl shadow-lg mx-auto mt-10" /><p className="text-sm text-red-400">
+  Limited early access pricing 🚀
+Sidebar
+  ├ Vault
+  ├ Security Dashboard
+  ├ Shared (Family)
+  ├ Settings
+
+Main Area
+  ├ Search + Add Password
+  ├ Vault List
+  ├ Security Scoreexport default function Dashboard({ vault, user }) {
+  return (
+    <div className="flex h-screen bg-gray-950 text-white">
+
+      {/* SIDEBAR */}
+      <aside className="w-64 bg-gray-900 p-6 flex flex-col justify-between">
+        <div>
+          <h1 className="text-xl font-bold mb-8">🔐 Lockr</h1>
+
+          <nav className="space-y-4 text-gray-300">
+            <p className="hover:text-white cursor-pointer">Vault</p>
+            <p className="hover:text-white cursor-pointer">Security</p>
+            <p className="hover:text-white cursor-pointer">Shared</p>
+            <p className="hover:text-white cursor-pointer">Settings</p>
+          </nav>
+        </div>
+
+        <div className="text-sm text-gray-400">
+          {user.email}
+        </div>
+      </aside>
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 p-6 overflow-y-auto">
+
+        {/* TOP BAR */}
+        <div className="flex justify-between items-center mb-6">
+          <input
+            placeholder="Search passwords..."
+            className="bg-gray-800 px-4 py-2 rounded w-1/3"
+          />
+
+          <button className="bg-blue-600 px-4 py-2 rounded">
+            + Add Password
+          </button>
+        </div>
+
+        {/* SECURITY CARD */}
+        <div className="bg-gray-900 p-6 rounded-xl mb-6">
+          <h2 className="text-lg font-semibold mb-2">
+            Security Score
+          </h2>
+
+          <p className="text-3xl font-bold text-green-400">
+            82%
+          </p>
+
+          <p className="text-gray-400 mt-2">
+            2 weak passwords, 1 reused
+          </p>
+        </div>
+
+        {/* VAULT LIST */}
+        <div className="bg-gray-900 rounded-xl overflow-hidden">
+          <table className="w-full text-left">
+
+            <thead className="bg-gray-800 text-gray-400">
+              <tr>
+                <th className="p-4">Site</th>
+                <th className="p-4">Username</th>
+                <th className="p-4">Password</th>
+                <th className="p-4"></th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {vault.map((item) => (
+                <tr key={item.id} className="border-t border-gray-800">
+
+                  <td className="p-4">{item.site}</td>
+
+                  <td className="p-4">{item.username}</td>
+
+                  <td className="p-4">
+                    ••••••••
+                  </td>
+
+                  <td className="p-4 space-x-2">
+                    <button className="text-blue-400">Copy</button>
+                    <button className="text-gray-400">Edit</button>
+                  </td>
+
+                </tr>
+              ))}
+            </tbody>
+
+          </table>
+        </div>
+
+      </main>
+    </div>
+  );
+}className="hover:bg-gray-800 transition"className="bg-gray-900/80 backdrop-blur-md"className="transition-all duration-200 hover:scale-[1.01]"<div className="grid md:grid-cols-3 gap-4 mb-6">
+
+  <div className="bg-gray-900 p-4 rounded">
+    <p className="text-gray-400">Weak Passwords</p>
+    <p className="text-xl font-bold text-red-400">2</p>
+  </div>
+
+  <div className="bg-gray-900 p-4 rounded">
+    <p className="text-gray-400">Reused</p>
+    <p className="text-xl font-bold text-yellow-400">1</p>
+  </div>
+
+  <div className="bg-gray-900 p-4 rounded">
+    <p className="text-gray-400">Strong</p>
+    <p className="text-xl font-bold text-green-400">12</p>
+  </div>
+
+</div><div className="flex gap-4 mb-6">
+
+  <button className="bg-gray-800 px-4 py-2 rounded">
+    Generate Password
+  </button>
+
+  <button className="bg-gray-800 px-4 py-2 rounded">
+    Import
+  </button>
+
+  <button className="bg-gray-800 px-4 py-2 rounded">
+    Backup
+  </button>
+
+</div>if (!user.isPremium) {
+  return (
+    <div className="bg-gray-900 p-6 rounded text-center">
+      <h2 className="text-xl mb-2">Upgrade to Premium 🔒</h2>
+      <p className="text-gray-400 mb-4">
+        Unlock autofill, cloud sync, and more.
+      </p>
+      <button className="bg-blue-600 px-4 py-2 rounded">
+        Upgrade
+      </button>
+    </div>
+  );
+}
